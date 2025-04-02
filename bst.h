@@ -496,6 +496,7 @@ void BinarySearchTree<Key, Value>::insert(const std::pair<const Key, Value> &key
         }
       }      
     }
+    // printRoot(this->root_);
 }
 
 
@@ -507,41 +508,95 @@ void BinarySearchTree<Key, Value>::insert(const std::pair<const Key, Value> &key
 template<typename Key, typename Value>
 void BinarySearchTree<Key, Value>::remove(const Key& key)
 {
-  Node<Key, Value>* curr = root_;
-  Node<Key, Value>* parent = nullptr;
-  int side=0;
-  while(curr!=nullptr){
-    if(key > curr->getKey()){
-      parent = curr;
-      curr = curr->getRight();
-      side=0;
-    }else if(key == curr->getKey()){
-      if(curr->getLeft() == nullptr){
-        if(side==0){
-          parent->setRight(curr->getRight());
-          if(curr->getRight()!=nullptr){
-            curr->getRight()->setParent(parent);
-          }
-        }else{
-          parent->setLeft(curr->getRight());
-          if(curr->getRight()!=nullptr){
-            curr->getRight()->setParent(parent);
-          }
-        }
-        delete curr;
-        break;
+  // Node<Key, Value>* curr = internalFind(key);
+  // if(curr==nullptr){
+  //   return;
+  // }else{
+  //   if(curr->getLeft()){
+  //     Node<Key, Value>* pred = predecessor(curr->getLeft());
+  //     if(curr->getParent()){
+  //       nodeSwap(curr, pred);
+  //     }else{
+  //       nodeSwap(curr, pred);
+  //       this->root_ = pred;
+  //     }
+  //     if(curr->getLeft()){
+  //       if(curr==curr->getParent()->getRight()){
+  //         curr->getParent()->setRight(curr->getLeft());
+  //         curr->getLeft()->setParent(curr->getParent());
+  //       }else{
+  //         curr->getParent()->setLeft(curr->getLeft());
+  //         curr->getLeft()->setParent(curr->getParent());
+  //       }
+  //     }
+  //     //delete curr;
+  //   }else{
+  //     if(curr->getRight()){
+  //       if(curr->getParent()){
+  //         if(curr->getValue()>curr->getParent()->getValue()){
+  //           curr->getParent()->setRight(curr->getRight());
+  //           curr->getRight()->setParent(curr->getParent());
+  //           //delete curr;
+  //         }else{
+  //           curr->getParent()->setLeft(curr->getRight());
+  //           curr->getRight()->setParent(curr->getParent());
+  //           //delete curr;
+  //         }
+  //       }else{
+  //         this->root_ = curr->getRight();
+  //         curr->getRight()->setParent(nullptr);
+  //         //delete curr;
+  //       }
+  //     }else{
+  //       if(curr->getParent()){
+  //         if(curr->getValue()>curr->getParent()->getValue()){
+  //           curr->getParent()->setRight(nullptr);
+  //           curr->getRight()->setParent(curr->getParent());
+  //           //delete curr;
+  //         }else{
+  //           curr->getParent()->setLeft(nullptr);
+  //           curr->getLeft()->setParent(curr->getParent());
+  //           //delete curr;
+  //         }
+  //       }else{
+  //         this->root_ = nullptr;
+  //         //delete curr;
+  //       }
+  //     }
+  //   }
+  // }
+  Node<Key, Value>* curr = internalFind(key);
+  if(curr==nullptr){
+    return;
+  }else{
+    if(curr->getLeft() && curr->getRight()) {
+        Node<Key, Value>* pred = predecessor(curr->getLeft());
+        nodeSwap(curr, pred);
+    }
+    Node<Key, Value>* child = nullptr;
+    Node<Key, Value>* parent = nullptr;
+    if(curr->getLeft()){
+      child = curr->getLeft();
+      parent = curr->getParent();
+    }else{
+      child = curr->getRight();
+      parent = curr->getParent();
+    }
+    if(child){
+      child->setParent(parent);
+    }
+    if(parent){
+      if(parent->getLeft()==curr){
+        parent->setLeft(child);
       }else{
-        Node<Key, Value>* swapper = predecessor(curr->getLeft());
-        nodeSwap(curr, swapper);
-        delete curr;
-        break;
+        parent->setRight(child);
       }
     }else{
-      parent = curr;
-      curr = curr->getLeft();
-      side=1;
+      this->root_ = child;
     }
+    delete curr;
   }
+  // printRoot(this->root_);
 }
 
 
@@ -565,7 +620,8 @@ BinarySearchTree<Key, Value>::predecessor(Node<Key, Value>* current)
 template<typename Key, typename Value>
 void BinarySearchTree<Key, Value>::clear()
 {
-  deleter(root_);
+  deleter(this->root_);
+  this->root_=nullptr;
 }
 
 template<typename Key, typename Value>
@@ -574,8 +630,13 @@ void BinarySearchTree<Key, Value>::deleter(Node<Key, Value>* node)
   if(node==nullptr){
     return;
   }else{
-    deleter(node->getRight());
-    deleter(node->getLeft());
+    if(node->getRight()){
+      deleter(node->getRight());
+    }
+    if(node->getLeft()){
+      deleter(node->getLeft());
+    }
+    node->setParent(nullptr);
     delete node;
   }
 }
@@ -628,15 +689,19 @@ Node<Key, Value>* BinarySearchTree<Key, Value>::internalFind(const Key& key) con
 template<typename Key, typename Value>
 bool BinarySearchTree<Key, Value>::isBalanced() const
 {
-  int left_ = numChildren(this->root_->getLeft());
-  int right_ = numChildren(this->root_->getRight());
-  int sum = (left_ - right_);
-  if(left_>=0 && right_>=0){
-    if(sum>=-1&&sum<=1){
-      return true;
+  if(this->root_ != nullptr){
+    int left_ = numChildren(this->root_->getLeft());
+    int right_ = numChildren(this->root_->getRight());
+    int sum = (left_ - right_);
+    if(left_>=0 && right_>=0){
+      if(sum>=-1&&sum<=1){
+        return true;
+      }
     }
+    return false;
   }
-  return false;
+  return true;
+  
 }
 template<typename Key, typename Value>
 int BinarySearchTree<Key, Value>::numChildren(Node<Key, Value>* root) const{
