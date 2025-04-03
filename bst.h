@@ -468,7 +468,7 @@ void BinarySearchTree<Key, Value>::insert(const std::pair<const Key, Value> &key
     if(root_==nullptr){
       root_ = new Node<Key, Value>(keyValuePair.first, keyValuePair.second, nullptr);
     }else{
-      bool check_ = true;
+      // bool check_ = true;
       Node<Key, Value>* curr = root_; 
       Node<Key, Value>* parent = nullptr; 
       int side = 0;
